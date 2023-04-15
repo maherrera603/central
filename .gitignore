@@ -1,2 +1,3 @@
 __pycache__
 central/settings/local.py
+db.sqlite3
