@@ -1,3 +1,7 @@
 __pycache__
 central/settings/local.py
 db.sqlite3
+build.sh
+manage.py
+central/wsgi.py
+central/settings/base.py
