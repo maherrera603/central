@@ -15,10 +15,12 @@ class Role(models.Model):
     
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=60, unique=True)
-    id_role = models.ForeignKey(Role, related_name='user_role', on_delete=models.CASCADE)
+    id_role = models.ForeignKey(Role, related_name='user_role', on_delete=models.CASCADE, null=True, blank=True)
     USERNAME_FIELD = 'email'
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
     objects = UserManager()
     
     def __str__(self):

@@ -2,4 +2,5 @@ from django.db.models import Manager
 
 
 class EmployeeManager(Manager):
-    pass
+    def get_user(self, account):
+        return self.get(id_user=account)
