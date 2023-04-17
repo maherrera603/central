@@ -22,7 +22,7 @@ class RegisterPattientView(APIView):
     def post(self, request):
         serializer = RegisterSerilizer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if User.objects.user_exists(serializer.data):
+        if User.objects.user_exists(serializer.data['email']):
             data = _send_data(404, 'bad request', 'El usuario ya se encuentra registrado')
             return Response(data)
         

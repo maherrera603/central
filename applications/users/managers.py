@@ -24,6 +24,9 @@ class UserManager(BaseUserManager, Manager):
     def create_user(self, email, password, rol):
         return self._created_user(email, password, rol, False, False)
     
-    def user_exists(self, data):
-        user = self.get(email=data['email'])
-        return False if user is None else True
+    def user_exists(self, email):
+        try:
+            user = self.get(email=email)
+            return True
+        except self.model.DoesNotExist:
+            return False
