@@ -23,3 +23,7 @@ class UserManager(BaseUserManager, Manager):
     
     def create_user(self, email, password, rol):
         return self._created_user(email, password, rol, False, False)
+    
+    def user_exists(self, data):
+        user = self.get(email=data['email'])
+        return False if user is None else True
