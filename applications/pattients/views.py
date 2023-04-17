@@ -20,6 +20,10 @@ class RegisterPattientView(APIView):
     def post(self, request):
         serializer = RegisterSerilizer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        if User.objects.user_exists(serializer.data):
+            data = _send_data(404, 'bad request', 'El usuario ya se encuentra registrado')
+            return Response(data)
+        
         rol = Role.objects.get_rol(3)
         user = User.objects.create_user(serializer.data['email'], serializer.data['password'], rol)
         pattient = Pattient.objects.create_pattient(serializer.data, user)
