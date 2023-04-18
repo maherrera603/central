@@ -7,10 +7,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 # models
+from .models import Role
 from applications.pattients.models import Pattient
 from applications.employees.models import Employee
 # serializers
-from .serializers import LoginSerializer
+from .serializers import RoleSerializer, LoginSerializer
 
 # Create your views here.
 def _send_data(code: int, status: str, message: str):
@@ -19,6 +20,16 @@ def _send_data(code: int, status: str, message: str):
     data['status'] = status
     data['message'] = message
     return data
+
+class RegisterRoleView(APIView):
+    def post(self, request):
+        serializer = RoleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+        data = _send_data(202, 'created', 'rol registrado correctamente')
+        data['role'] = serializer.data
+        return Response(data)
 
 
 class LoginView(APIView):
