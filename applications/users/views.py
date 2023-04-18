@@ -63,6 +63,7 @@ class LoginView(APIView):
 class LogoutView(APIView):
     authentication_classes = (TokenAuthentication, )
     permission_classes = [IsAuthenticated]
+
     def delete(self, request):
         request.user.auth_token.delete()
         data = _send_data(204, 'not content', 'sesion cerrada exitosamente')
