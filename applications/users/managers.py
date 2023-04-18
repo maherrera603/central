@@ -3,6 +3,13 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class RoleManager(Manager):
+    def rol_exists(self, role):
+        try:
+            self.get(role=role)
+            return True
+        except self.model.DoesNotExist:
+            return False
+    
     def get_rol(self, role):
         return self.get(pk=role)
 

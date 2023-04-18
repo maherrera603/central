@@ -1,7 +1,17 @@
 from rest_framework import  serializers
 from rest_framework.authtoken.models import Token
 #
-from .models import User
+from .models import Role
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ('role', )
+        
+    def validate_role(self, data):
+        if len(data) < 5:
+            raise serializers.ValidationError('Rol debe contener 5 o mas caracteres')
+        return data
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
