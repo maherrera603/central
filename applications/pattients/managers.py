@@ -14,6 +14,9 @@ class PattientManager(Manager):
     
     def get_user(self, account):
         return self.get(id_user=account)
+    
+    def get_pattient(self, document):
+        return self.get(document=document)
         
 
 class FamilyManager(Manager):

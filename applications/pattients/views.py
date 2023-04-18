@@ -38,7 +38,19 @@ class UpdatedPattientView(APIView):
     authentication_classes = (TokenAuthentication, )
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, pk):
-        return Response('welcomen to the plataform')
+    def get(self, request, document):
+        pattient = Pattient.objects.get_pattient(document)
+        data = _send_data(200, 'OK', "datos del paciente")
+        data['pattient'] = {
+            'name': pattient.name,
+            'lastname': pattient.lastname,
+            'type_document': pattient.type_document,
+            'document': pattient.document,
+            'phone': pattient.phone
+        }
+        return Response(data)
+    
+    def patch(self, request, document):
+        return Response('update pattient')
     
     
