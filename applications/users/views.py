@@ -4,14 +4,14 @@ from django.contrib import auth
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 # models
-from .models import Role
+from .models import Role, User
 from applications.pattients.models import Pattient
 from applications.employees.models import Employee
 # serializers
-from .serializers import RoleSerializer, LoginSerializer
+from .serializers import SuperUserSerializer, RoleSerializer, LoginSerializer
 
 # Create your views here.
 def _send_data(code: int, status: str, message: str):
@@ -21,7 +21,34 @@ def _send_data(code: int, status: str, message: str):
     data['message'] = message
     return data
 
+class CreateSuperUser(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SuperUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "Complete los campos requeridos")
+            data["error"] = serializer.errors
+            return Response(data)
+        
+        user_exists = User.objects.user_exists(serializer.data["email"])
+        if user_exists: 
+            data = _send_data(400, "bad request", "El usuario ya se encuentra registrado")
+            return Response(data)
+
+        user = User.objects.create_superuser(email=serializer.data["email"], password=serializer.data["password"])
+        data = _send_data(202, "created", "the superuser has been created")
+        return Response(data)
+
+
 class RegisterRoleView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        roles = Role.objects.get_all_roles()
+        data = _send_data(200, "OK", "roles")
+        data["roles"] = roles.values()
+        return Response(data)
+    
     def post(self, request):
         serializer = RoleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -30,6 +57,8 @@ class RegisterRoleView(APIView):
         data = _send_data(202, 'created', 'rol registrado correctamente')
         data['role'] = serializer.data
         return Response(data)
+
+
 
 
 class LoginView(APIView):
@@ -59,6 +88,7 @@ class LoginView(APIView):
             'role': account.id_role.id
         }
         return Response(data)
+  
     
 class LogoutView(APIView):
     authentication_classes = (TokenAuthentication, )

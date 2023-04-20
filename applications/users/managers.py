@@ -12,6 +12,17 @@ class RoleManager(Manager):
     
     def get_rol(self, role):
         return self.get(pk=role)
+    
+    def get_all_roles(self):
+        return self.all().exclude(role="Paciente")
+    
+    def exists_role(self, role: int):
+        try:
+            role = self.get(pk=role)
+            return False if role.role == "Paciente" else True
+        except self.model.DoesNotExist:
+            return False
+        
 
 
 class UserManager(BaseUserManager, Manager):
@@ -33,7 +44,7 @@ class UserManager(BaseUserManager, Manager):
     
     def user_exists(self, email):
         try:
-            user = self.get(email=email)
+            self.get(email=email)
             return True
         except self.model.DoesNotExist:
             return False
