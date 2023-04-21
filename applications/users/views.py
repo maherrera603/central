@@ -12,6 +12,9 @@ from applications.pattients.models import Pattient
 from applications.employees.models import Employee
 # serializers
 from .serializers import SuperUserSerializer, RoleSerializer, LoginSerializer
+# permissions
+from .permissions import IsAdministrator, IsEmployee
+
 
 # Create your views here.
 def _send_data(code: int, status: str, message: str):
@@ -20,6 +23,7 @@ def _send_data(code: int, status: str, message: str):
     data['status'] = status
     data['message'] = message
     return data
+
 
 class CreateSuperUser(APIView):
     def post(self, request, *args, **kwargs):
@@ -30,7 +34,7 @@ class CreateSuperUser(APIView):
             return Response(data)
         
         user_exists = User.objects.user_exists(serializer.data["email"])
-        if user_exists: 
+        if user_exists is not False: 
             data = _send_data(400, "bad request", "El usuario ya se encuentra registrado")
             return Response(data)
 
@@ -41,7 +45,7 @@ class CreateSuperUser(APIView):
 
 class RegisterRoleView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdministrator] # TODO: add or change permissions of admin
     
     def get(self, request):
         roles = Role.objects.get_all_roles()
@@ -51,14 +55,15 @@ class RegisterRoleView(APIView):
     
     def post(self, request):
         serializer = RoleSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "Ha ocurrido un error, intentelo de nuevo")
+            data["errors"] = serializer.errors["role"] = "el role ya se encuentra registrado"
+            return Response(data)
+        
         serializer.save()
         data = _send_data(202, 'created', 'rol registrado correctamente')
         data['role'] = serializer.data
         return Response(data)
-
-
 
 
 class LoginView(APIView):

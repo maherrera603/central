@@ -17,7 +17,24 @@ class EmployeeManager(Manager):
     
     def employee_exists(self, document):
         try:
-            self.get(document=document)
-            return True
+            return self.get(document=document)
         except self.model.DoesNotExist:
             return False
+        
+    def get_all_employees(self):
+        return self.all().exclude(id_user__id_role_id=1)
+    
+    def get_employee_by_document(self, document):
+        try:
+            return self.get(document=document)
+        except self.model.DoesNotExist:
+            return False
+        
+    def updated_employee(self, document, data):
+        employee = self.get(document=document)
+        employee.name = data["name"]
+        employee.lastname = data["lastname"]
+        employee.phone = data["phone"]
+        return employee
+        
+    
