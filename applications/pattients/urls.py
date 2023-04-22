@@ -1,8 +1,10 @@
 from django.urls import path
-#
-from .views import (
-    RegisterPattientView, UpdatedPattientView, FamilyView, DetailFamilyView
-)
+
+# views
+from .views import RegisterPattientView 
+from .views import UpdatedPattientView 
+from .views import FamilyView 
+from .views import DetailFamilyView
 
 
 urlpatterns = [

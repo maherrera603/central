@@ -1,6 +1,8 @@
 from rest_framework import serializers
+
 # models
 from .models import Employee
+
 
 class EmployeeSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()

@@ -1,19 +1,25 @@
-from django.shortcuts import render
 from django.contrib import auth
-#
+
+# rest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+
 # models
-from .models import Role, User
 from applications.pattients.models import Pattient
 from applications.employees.models import Employee
+from .models import Role 
+from .models import User
+
 # serializers
-from .serializers import SuperUserSerializer, RoleSerializer, LoginSerializer
+from .serializers import SuperUserSerializer 
+from .serializers import RoleSerializer
+from .serializers import LoginSerializer
+
 # permissions
-from .permissions import IsAdministrator, IsEmployee
+from .permissions import IsAdministrator
 
 
 # Create your views here.

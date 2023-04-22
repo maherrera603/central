@@ -1,8 +1,12 @@
 from django.db import models
-#
+
+# models
 from applications.employees.models import Employee
+
 # managers
-from .managers import StatusManager, SpecialityManager, DoctorManager
+from .managers import StatusManager
+from .managers import SpecialityManager
+from .managers import DoctorManager
 
 
 # Create your models here.
@@ -25,6 +29,7 @@ class Speciality(models.Model):
     
     def __str__(self):
         return self.speciality
+    
     
 class Doctor(models.Model):
     name = models.CharField(max_length=30)

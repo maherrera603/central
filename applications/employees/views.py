@@ -3,13 +3,19 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
+
 # models
+from applications.users.models import Role
+from applications.users.models import User
 from .models import Employee
-from applications.users.models import User, Role
+
 # serializers
-from .serializers import EmployeeSerializer, UpdatedEmployeeSerializer
+from .serializers import EmployeeSerializer 
+from .serializers import UpdatedEmployeeSerializer
+
 # permissions
-from applications.users.permissions import IsAdministrator, IsEmployee
+from applications.users.permissions import IsAdministrator 
+from applications.users.permissions import IsEmployee
 
 
 # Create your views here.

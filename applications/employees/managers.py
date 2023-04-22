@@ -36,5 +36,10 @@ class EmployeeManager(Manager):
         employee.lastname = data["lastname"]
         employee.phone = data["phone"]
         return employee
-        
+    
+    def get_employee_by_user(self, user):
+        try: 
+            return self.get(id_user=user)
+        except self.model.DoesNotExist:
+            return False
     

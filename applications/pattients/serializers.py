@@ -1,6 +1,8 @@
 from rest_framework import serializers
+
 #models
-from .models import Pattient, Family
+from .models import Family
+
 
 class RegisterSerilizer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
@@ -16,6 +18,7 @@ class RegisterSerilizer(serializers.Serializer):
         if len(password) < 8 or len(password) > 12:
             raise serializers.ValidationError("La Contraseña debe tener de 8 a 12 caracteres")
         return data
+   
     
 class UpdatedSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
@@ -37,10 +40,12 @@ class UpdatedSerializer(serializers.Serializer):
             raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
         return data
     
+    
 class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         model = Family
         exclude =  ["created_at", "updated_at"]
+    
         
 class UpdateFamilySerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)

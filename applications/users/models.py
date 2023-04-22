@@ -1,7 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-#
-from .managers import RoleManager, UserManager
+from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
+
+# managers
+from .managers import RoleManager
+from .managers import UserManager
 
 # Create your models here.
 class Role(models.Model):

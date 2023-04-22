@@ -1,18 +1,20 @@
-import json
-#
-from django.shortcuts import render
-#
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+
 #models
-from applications.users.models import Role, User
-from .models import Pattient, Family
+from applications.users.models import Role 
+from applications.users.models import User
+from .models import Pattient 
+from .models import Family
+
 #serializers
-from .serializers import (
-    RegisterSerilizer, UpdatedSerializer, FamilySerializer, UpdateFamilySerializer
-)
+from .serializers import RegisterSerilizer
+from .serializers import UpdatedSerializer 
+from .serializers import FamilySerializer 
+from .serializers import UpdateFamilySerializer
+
 
 # Create your views here.
 def _send_data(code: int, status: str, message: str):

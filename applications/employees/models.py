@@ -1,6 +1,8 @@
 from django.db import models
+
 # models
 from applications.users.models import User
+
 # managers
 from .managers import EmployeeManager
 
@@ -12,7 +14,7 @@ class Employee(models.Model):
     type_document = models.CharField(max_length=50)
     document = models.CharField(max_length=20, unique=True)
     phone = models.CharField(max_length=10)
-    id_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    id_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_employee")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = EmployeeManager()
