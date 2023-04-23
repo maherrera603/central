@@ -15,6 +15,9 @@ from .serializers import UpdatedSerializer
 from .serializers import FamilySerializer 
 from .serializers import UpdateFamilySerializer
 
+# permissions
+from applications.users.permissions import IsPattient
+
 
 # Create your views here.
 def _send_data(code: int, status: str, message: str):
@@ -24,29 +27,31 @@ def _send_data(code: int, status: str, message: str):
     data["message"] = message
     return data
 
+
 class RegisterPattientView(APIView):
     def post(self, request):
         serializer = RegisterSerilizer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if User.objects.user_exists(serializer.data["email"]):
-            data = _send_data(404, "bad request", "El usuario ya se encuentra registrado")
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "complete los campos requeridos")
+            data["errors"] = serializer.errors
+            return Response(data)
+        
+        user = User.objects.get_user_by_email(serializer.data["email"])
+        pattient = Pattient.objects.get_pattient_by_document(serializer.data["document"])
+        if pattient or user:
+            data = _send_data(400, "bad request", "el usuario ya se encuentra registrado")
             return Response(data)
 
-        rol = Role.objects.get_rol(3)
+        rol = Role.objects.get_role("paciente")
+        if not rol:
+            data = _send_data(404, "not found", "rol no encontrado")
+            return Response(data)
+    
         user = User.objects.create_user(serializer.data["email"], serializer.data["password"], rol)
         pattient = Pattient.objects.create_pattient(serializer.data, user)
-        data = _send_data(201, "created", "El registro fue exitoso")
-        data["pattient"] = serializer.data
-        return Response(data)
+        pattient.save()
 
-
-class UpdatedPattientView(APIView):
-    authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, document):
-        pattient = Pattient.objects.get_pattient(document)
-        data = _send_data(200, "OK", "datos del paciente")
+        data = _send_data(202, "created", "El usuario ha sido creado")
         data["pattient"] = {
             "name": pattient.name,
             "lastname": pattient.lastname,
@@ -56,12 +61,46 @@ class UpdatedPattientView(APIView):
         }
         return Response(data)
 
-    def patch(self, request, document):
+
+class UpdatedPattientView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsPattient]
+
+    def get(self, request, document):
+        pattient = Pattient.objects.get_pattient_by_document(document)
+        if not pattient:
+            data = _send_data(404, "el usuario no existe")
+            return Response(data)
+
+        data = _send_data(200, "OK", "datos del usuario")
+        data["pattient"] = {
+            "id": pattient.name,
+            "lastname": pattient.lastname,
+            "type_document": pattient.type_document,
+            "document": pattient.document,
+            "phone": pattient.phone
+        }
+        
+        return Response(data)
+        
+    def put(self, request, document):
         serializer = UpdatedSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        pattient = Pattient.objects.update_pattient(document, serializer.data)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "complete los campos requeridos")
+            data["errors"] = serializer.errors
+            return Response(data)
+        
+        pattient = Pattient.objects.get_pattient_by_document(document)
+        if not pattient:
+            data = _send_data(404, "Not Found", "el usuario no se encontro")
+            return Response(data)
+        
+        pattient.name = serializer.data["name"]
+        pattient.lastname = serializer.data["lastname"]
+        pattient.phone = serializer.data["phone"]
         pattient.save()
-        data = _send_data(202, "created", "actualizacion de datos existosa")
+        
+        data = _send_data(202, "created", "los datos del usuario han sido actualizado")
         data["pattient"] = {
             "id": pattient.id,
             "name": pattient.name,
@@ -69,30 +108,46 @@ class UpdatedPattientView(APIView):
             "type_document": pattient.type_document,
             "document": pattient.document,
             "phone": pattient.phone,
-            "email": pattient.id_user.email
         }
         return Response(data)
 
 
 class FamilyView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsAuthenticated]
-    serializer_class = FamilySerializer
+    permission_classes = [IsPattient]
+
 
     def get(self, request):
-        pattient = Pattient.objects.get_pattient_by_id_user(request.user.id)
-        familys = Family.objects.obtain_familys(pattient.id)
-        print(familys.values_list())
-        data = _send_data(200, "OK", "Listado de familiares")
-        data['familys'] = familys.values()
+        pattient = Pattient.objects.get_user(request.user)
+        if not pattient:
+            data = _send_data(404, "not found", "usuario no encontrado")
+            return Response(data)
+        
+        families = Family.objects.get_families_by_pattient(pattient)
+        data = _send_data(200, "OK", "familiares")
+        data["familys"] = families.values()
         return Response(data)
 
     def post(self, request):
         serializer = FamilySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        pattient = Pattient.objects.get_pattient_by_id(serializer.data['id_pattient'])
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "complete los campos")
+            data["errors"] = serializer.errors
+            return Response(data)
+        
+        pattient = Pattient.objects.get_user(request.user)
+        if not pattient:
+            data = _send_data(404, "not found", "no se encontro usuario")
+            return Response(data)
+        
+        family = Family.objects.get_family_by_document(serializer.data["document"])
+        if family:
+            data = _send_data(400, "bad request", "el familiar ya ha sido registrado")
+            return Response(data)
+        
         family = Family.objects.create_family(serializer.data, pattient)
         family.save()
+        
         data = _send_data(202, "created", "familiar registrado correctamente")
         data["family"] = {
             "name": family.name,
@@ -100,6 +155,7 @@ class FamilyView(APIView):
             "type_document": family.type_document,
             "document": family.document,
             "phone": family.phone,
+            "eps": family.eps,
             "pattient": family.id_pattient.name
         }
         return Response(data)
@@ -107,56 +163,62 @@ class FamilyView(APIView):
 
 class DetailFamilyView(APIView):
     authentication_classes = (TokenAuthentication ,)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPattient]
     
-    def get(self, request, pk):
-        family = Family.objects.get_family_by_id(pk)
-        if family["exists"] is False:
+    def get(self, request, document):
+        family = Family.objects.get_family_by_document(document)
+        if not family:
             data = _send_data(404, "not fount", "familiar no encontrado")
             return Response(data)
+        
         data = _send_data(200, 'OK', "datos del familiar")
         data['family'] = {
-            "id": family["family"].id,
-            "name": family["family"].name,
-            "lastname": family["family"].lastname,
-            "type_document": family["family"].type_document,
-            "document": family["family"].document,
-            "phone": family["family"].phone
+            "id": family.id,
+            "name": family.name,
+            "lastname": family.lastname,
+            "type_document": family.type_document,
+            "document": family.document,
+            "phone": family.phone,
+            "eps": family.eps
         }
         return Response(data)
     
-    def put(self, request, pk):
+    def put(self, request, document):
         serializer = UpdateFamilySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        family= Family.objects.get_family_by_id(pk)
-        if family["exists"] is False:
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "complete los campos requeridos")
+            
+        family= Family.objects.get_family_by_document(document)
+        if not family:
             data = _send_data(404, "not fount", "familiar no encontrado")
             return Response(data)
 
-        familyData = family["family"]
-        familyData.name = serializer.data["name"]
-        familyData.lastname = serializer.data["lastname"]
-        familyData.phone = serializer.data["phone"]
-        familyData.save()
+        family.name = serializer.data["name"]
+        family.lastname = serializer.data["lastname"]
+        family.phone = serializer.data["phone"]
+        family.save()
+        
         data = _send_data(202, "created", "datos del familiar actualizados")
         data["family"] = {
-            "id": familyData.id,
-            "name": familyData.name,
-            "lastname": familyData.lastname,
-            "type_document": familyData.type_document,
-            "document": familyData.document,
-            "phone": familyData.phone,
-            "pattient": familyData.id_pattient.name
+            "id": family.id,
+            "name": family.name,
+            "lastname": family.lastname,
+            "type_document": family.type_document,
+            "document": family.document,
+            "phone": family.phone,
+            "eps": family.eps,
+            "pattient": family.id_pattient.name
         }
         return Response(data)
     
     
-    def delete(self, request, pk):
-        family = Family.objects.get_family_by_id(pk)
-        if family["exists"] is False:
+    def delete(self, request, document):
+        family = Family.objects.get_family_by_document(document)
+        if not family:
             data = _send_data(404, "not fount", "familiar no encontrado")
             return Response(data)
-        family_deleted = family["family"]
-        family_deleted.delete()
+        
+        family.delete()
+        
         data = _send_data(204, "not content", "el familiar ha sido eliminado")
         return Response(data)

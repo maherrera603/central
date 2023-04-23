@@ -3,10 +3,9 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class RoleManager(Manager):
-    def rol_exists(self, role):
+    def get_role(self, role):
         try:
-            self.get(role=role)
-            return True
+            return self.get(role__icontains=role)
         except self.model.DoesNotExist:
             return False
     
@@ -41,13 +40,7 @@ class UserManager(BaseUserManager, Manager):
     
     def create_user(self, email, password, rol):
         return self._created_user(email, password, rol, False, False)
-    
-    def user_exists(self, email):
-        try:
-            return self.get(email=email)
-        except self.model.DoesNotExist:
-            return False
-        
+           
     def get_user_by_email(self, email):
         try:
             self.get(email=email)

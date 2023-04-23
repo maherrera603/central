@@ -44,4 +44,39 @@ class SpecialityManager(Manager):
 
 
 class DoctorManager(Manager):
-    pass
+    def get_all_doctors(self):
+        return self.all()
+    
+    def get_doctor_by_document(self, document):
+        try:
+            return self.get(document=document)
+        except self.model.DoesNotExist:
+            return False
+        
+    def created_doctor(self, data, employee, speciality, status):
+        doctor = self.model()
+        doctor.name = data["name"]
+        doctor.lastname = data["lastname"]
+        doctor.type_document = data["type_document"]
+        doctor.document = data["document"]
+        doctor.phone = data["phone"]
+        doctor.id_speciality = speciality
+        doctor.id_status = status
+        doctor.id_employee = employee
+        return doctor
+    
+    
+    def updated_doctor(self, document, data, speciality, status, employee):
+        try:
+            doctor = self.get(document=document)
+            doctor.name = data["name"]
+            doctor.lastname = data["lastname"]
+            doctor.type_document = data["type_document"]
+            doctor.document = data["document"]
+            doctor.phone = data["phone"]
+            doctor.id_speciality = speciality
+            doctor.id_status = status
+            doctor.id_employee = employee
+            return doctor
+        except self.model.DoesNotExist:
+            return False

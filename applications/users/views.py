@@ -20,6 +20,8 @@ from .serializers import LoginSerializer
 
 # permissions
 from .permissions import IsAdministrator
+from .permissions import IsEmployee
+from .permissions import IsPattient
 
 
 # Create your views here.
@@ -75,7 +77,10 @@ class RegisterRoleView(APIView):
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "complete los campos requeridos")
+            return Response(data)
+        
         email = serializer.data['email']
         password = serializer.data['password']
         account = auth.authenticate(email=email, password=password)
@@ -85,6 +90,10 @@ class LoginView(APIView):
         
         Table = Pattient if account.id_role.id == 3 else Employee
         user = Table.objects.get_user(account)
+        if not user:
+            data = _send_data(404, "not found", "el usuario no existe")
+            return Response(data)
+        
         token = Token.objects.get_or_create(user=account)[0]
         
         data = _send_data(200, 'OK', 'Login Correcto')
@@ -103,7 +112,7 @@ class LoginView(APIView):
     
 class LogoutView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdministrator, IsEmployee, IsPattient]
 
     def delete(self, request):
         request.user.auth_token.delete()

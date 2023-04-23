@@ -26,7 +26,7 @@ class UpdatedSerializer(serializers.Serializer):
     type_document = serializers.CharField(max_length=50)
     document = serializers.CharField(max_length=20)
     phone = serializers.CharField(max_length=10)
-
+    eps = serializers.CharField(max_length=50)
     read_only_fields = ['type_document', 'document']
 
     
@@ -44,7 +44,7 @@ class UpdatedSerializer(serializers.Serializer):
 class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         model = Family
-        exclude =  ["created_at", "updated_at"]
+        exclude =  ["id_pattient" ,"created_at", "updated_at"]
     
         
 class UpdateFamilySerializer(serializers.Serializer):
@@ -53,3 +53,4 @@ class UpdateFamilySerializer(serializers.Serializer):
     type_document = serializers.CharField(max_length=50)
     document = serializers.CharField(max_length=20)
     phone = serializers.CharField(max_length=10)
+    eps = serializers.CharField(max_length=50)

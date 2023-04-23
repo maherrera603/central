@@ -12,6 +12,8 @@ class Cites(models.Model):
     lastname = models.CharField(max_length=30)
     type_document = models.CharField(max_length=30)
     document = models.CharField(max_length=20, unique=True)
+    phone = models.CharField(max_length=10, blank=True)
+    eps = models.CharField(max_length=50, blank=True)
     id_speciality = models.ForeignKey(Speciality, on_delete=models.CASCADE)
     id_doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=True, blank=True)
     id_status = models.ForeignKey(Status, on_delete=models.CASCADE)
