@@ -112,7 +112,7 @@ class LoginView(APIView):
     
 class LogoutView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsAdministrator, IsEmployee, IsPattient]
+    permission_classes = [IsAdministrator|IsEmployee|IsPattient]
 
     def delete(self, request):
         request.user.auth_token.delete()

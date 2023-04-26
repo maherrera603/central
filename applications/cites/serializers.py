@@ -1,3 +1,5 @@
+from datetime import datetime
+#
 from rest_framework import serializers
 
 # models 
@@ -44,5 +46,34 @@ class RegisterCiteSerializer(serializers.Serializer):
         if len(status) < 3 or len(status) > 20:
             raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
         return status 
+    
+    
+class UpdateCiteSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    lastname = serializers.CharField()
+    type_document = serializers.CharField()
+    document = serializers.CharField()
+    phone = serializers.CharField()
+    eps = serializers.CharField()
+    speciality = serializers.CharField()
+    id_doctor = serializers.IntegerField()
+    date_cite = serializers.DateField()
+    hour_cite = serializers.TimeField(format='%I:%M:%S')
+    status = serializers.CharField()
+    
+    # def validate_date_cite(self, date_cite):
+    #     date_cite = datetime.strptime(str(date_cite), "%d-%m-%Y")
+    #     return date_cite
+    
+    # def validate_hour_cite(self, hour_cite):
+    #     return datetime.strptime(str(hour_cite, "%I:%S:%M %p"))
+        
+    
+    def validate_status(self, status):
+        if len(status) < 3 or len(status) > 20:
+            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
+        return status
+    
+    
     
     

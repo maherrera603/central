@@ -16,3 +16,21 @@ class CiteManager(Manager):
         cite.id_status = status
         cite.id_pattient = pattient
         return cite
+    
+    def get_cite_by_pk(self, pk):
+        try:
+            return self.get(pk=pk)
+        except self.model.DoesNotExist:
+            return False
+        
+        
+    def update_cite(self, pk, data, doctor, statu):
+        try:
+            cite = self.get(pk=pk)
+            cite.id_doctor = doctor
+            cite.date_cite = data["date_cite"]
+            cite.hour_cite = data["hour_cite"]
+            cite.id_status = statu
+            return cite
+        except self.model.DoesNotExist:
+            return False

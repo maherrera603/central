@@ -65,7 +65,6 @@ class DoctorManager(Manager):
         doctor.id_employee = employee
         return doctor
     
-    
     def updated_doctor(self, document, data, speciality, status, employee):
         try:
             doctor = self.get(document=document)
@@ -78,5 +77,11 @@ class DoctorManager(Manager):
             doctor.id_status = status
             doctor.id_employee = employee
             return doctor
+        except self.model.DoesNotExist:
+            return False
+        
+    def get_doctor_by_pk(self, pk):
+        try:
+            return self.get(pk=pk)
         except self.model.DoesNotExist:
             return False
