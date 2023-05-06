@@ -120,5 +120,5 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:4200',
+    'https://central-citas-medicas.netlify.app/',
 ]
