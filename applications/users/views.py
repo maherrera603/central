@@ -98,14 +98,14 @@ class LoginView(APIView):
         
         data = _send_data(200, 'OK', 'Login Correcto')
         data['token'] = token.key
-        data['pattient'] = {
+        data['role'] = account.id_role.role
+        data['user'] = {
             'name': user.name,
             'lastname': user.lastname,
             'type_document': user.type_document,
             'document': user.document,
             'phone': user.phone,
             'email': account.email,
-            'role': account.id_role.id
         }
         return Response(data)
   

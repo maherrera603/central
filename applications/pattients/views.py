@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 #models
 from applications.users.models import Role 
@@ -38,7 +37,7 @@ class RegisterPattientView(APIView):
         
         user = User.objects.get_user_by_email(serializer.data["email"])
         pattient = Pattient.objects.get_pattient_by_document(serializer.data["document"])
-        if pattient or user:
+        if user or pattient:
             data = _send_data(400, "bad request", "el usuario ya se encuentra registrado")
             return Response(data)
 
@@ -46,7 +45,9 @@ class RegisterPattientView(APIView):
         if not rol:
             data = _send_data(404, "not found", "rol no encontrado")
             return Response(data)
-    
+
+        print(f"despues del rol {user} {pattient}")
+        
         user = User.objects.create_user(serializer.data["email"], serializer.data["password"], rol)
         pattient = Pattient.objects.create_pattient(serializer.data, user)
         pattient.save()

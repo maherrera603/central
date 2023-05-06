@@ -34,6 +34,7 @@ class UserManager(BaseUserManager, Manager):
         user.set_password(password)
         user.save(using=self.db)
         return user
+
     
     def create_superuser(self, email, password):
         return self._created_user(email, password, None, True, True)
@@ -43,6 +44,6 @@ class UserManager(BaseUserManager, Manager):
            
     def get_user_by_email(self, email):
         try:
-            self.get(email=email)
+            return self.get(email=email)
         except self.model.DoesNotExist:
             return False
