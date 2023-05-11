@@ -69,17 +69,19 @@ class UpdatedPattientView(APIView):
 
     def get(self, request, document):
         pattient = Pattient.objects.get_pattient_by_document(document)
+        print(pattient)
         if not pattient:
-            data = _send_data(404, "el usuario no existe")
+            data = _send_data(404,"not found",  "el usuario no existe")
             return Response(data)
 
         data = _send_data(200, "OK", "datos del usuario")
         data["pattient"] = {
-            "id": pattient.name,
+            "name": pattient.name,
             "lastname": pattient.lastname,
             "type_document": pattient.type_document,
             "document": pattient.document,
-            "phone": pattient.phone
+            "phone": pattient.phone,
+            "eps": pattient.eps,
         }
         
         return Response(data)
@@ -99,6 +101,7 @@ class UpdatedPattientView(APIView):
         pattient.name = serializer.data["name"]
         pattient.lastname = serializer.data["lastname"]
         pattient.phone = serializer.data["phone"]
+        pattient.eps = serializer.data["eps"]
         pattient.save()
         
         data = _send_data(202, "created", "los datos del usuario han sido actualizado")
@@ -109,6 +112,7 @@ class UpdatedPattientView(APIView):
             "type_document": pattient.type_document,
             "document": pattient.document,
             "phone": pattient.phone,
+            "eps": pattient.eps
         }
         return Response(data)
 
