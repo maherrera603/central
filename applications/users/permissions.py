@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 class IsAdministrator(IsAuthenticated):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
-            return request.user.id_role.id == 1
+            return True
+            return request.user.id_role.id == 1 or request.user.id_role.id == 2 or request.user.id_role.id == 3  
         return request.user.id_role.id == 1
 
     

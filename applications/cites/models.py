@@ -11,7 +11,7 @@ class Cites(models.Model):
     name = models.CharField(max_length=30)
     lastname = models.CharField(max_length=30)
     type_document = models.CharField(max_length=30)
-    document = models.CharField(max_length=20, unique=True)
+    document = models.CharField(max_length=20)
     phone = models.CharField(max_length=10, blank=True)
     eps = models.CharField(max_length=50, blank=True)
     id_speciality = models.ForeignKey(Speciality, on_delete=models.CASCADE)
