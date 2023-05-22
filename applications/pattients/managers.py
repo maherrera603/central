@@ -1,4 +1,5 @@
 from django.db.models import Manager
+from django.db.models import Q
 
 class PattientManager(Manager):
     def get_pattient_by_document(self, document):
@@ -43,4 +44,9 @@ class FamilyManager(Manager):
         family.phone = data["phone"]
         family.id_pattient = pattient
         return family
+    
+    def search_family(self, search, pattient):
+        return self.filter(
+            Q(name__icontains=search) | Q(lastname__icontains=search) | Q(document__icontains=search) 
+        ).filter(id_pattient=pattient)
     

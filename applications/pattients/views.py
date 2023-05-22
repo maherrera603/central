@@ -227,3 +227,24 @@ class DetailFamilyView(APIView):
         
         data = _send_data(204, "not content", "el familiar ha sido eliminado")
         return Response(data)
+    
+    
+class SearchFamilyView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsPattient]
+    
+    def get(self, request, search):
+        user = self.request.user
+        pattient = Pattient.objects.get_user(user)
+        if not pattient:
+            data = _send_data(204, "not found", "El usuario no ha iniciado sesion")
+            return Response(data)
+        
+        familys = Family.objects.search_family(search, pattient)
+        if not familys:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data)
+        
+        data = _send_data(200, "OK", "familiares")
+        data["familys"] = familys.values()
+        return Response(data)
