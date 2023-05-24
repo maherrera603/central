@@ -4,6 +4,9 @@ from rest_framework import serializers
 
 # models 
 from .models import Cites
+from applications.administrations.models import Status
+
+from applications.administrations.serializers import StatusSerializer
 
 
 class RegisterCiteSerializer(serializers.Serializer):
@@ -74,6 +77,12 @@ class UpdateCiteSerializer(serializers.Serializer):
             raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
         return status
     
+
+class ResponseCiteSerializer(serializers.ModelSerializer):
+    id_status = serializers.SlugRelatedField( read_only=True, slug_field="status" )
+    id_speciality = serializers.SlugRelatedField( read_only=True, slug_field="speciality" )
+    id_doctor = serializers.SlugRelatedField( read_only=True, slug_field="name" )
     
-    
-    
+    class Meta:
+        model = Cites
+        fields = "__all__"

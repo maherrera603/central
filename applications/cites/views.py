@@ -13,6 +13,7 @@ from .models import Cites # TODO: change of cites to cite
 # serializers
 from .serializers import RegisterCiteSerializer
 from .serializers import UpdateCiteSerializer
+from .serializers import ResponseCiteSerializer
 
 # permissions
 from applications.users.permissions import IsEmployee
@@ -39,8 +40,9 @@ class RegisterCiteView(APIView):
             return Response(data)
         
         cites = Cites.objects.get_cites_by_pattient(pattient)
+        serializer = ResponseCiteSerializer(cites, many=True)
         data = _send_data(200, "OK", "citas solicitadas")
-        data["cites"] = cites.values()
+        data["cites"] = serializer.data
         return Response(data)
     
     def post(self, request):
