@@ -149,3 +149,30 @@ class DetailCiteView(APIView):
             "status": cite.id_status.status,
         }
         return Response(data)
+    
+    
+class SearchCiteView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsPattient]
+    
+    def get(self, request, search):
+        pattient = Pattient.objects.get_user(request.user)
+        cites = Cites.objects.search_cite(pattient, search)
+        
+        if not pattient:
+            data = _send_data(400, "bad request", "El usuario no se ha autenticado")
+            return Response(data=data)
+        
+        if not cites:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data=data)
+        
+        serializer = ResponseCiteSerializer(cites, many=True)
+        
+        data = _send_data(200, "OK", "cita")
+        data["cites"] = serializer.data
+        return Response(data=data) 
+        
+                
+        
+        

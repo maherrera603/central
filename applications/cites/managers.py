@@ -1,4 +1,5 @@
 from django.db.models import Manager
+from django.db.models import Q
 
 class CiteManager(Manager):
     def get_cites_by_pattient(self, pattient):
@@ -34,3 +35,9 @@ class CiteManager(Manager):
             return cite
         except self.model.DoesNotExist:
             return False
+        
+    def search_cite(self, pattient, search):
+        cites = self.filter(
+            Q(name__icontains=search) | Q(lastname__icontains = search) | Q(document__icontains = search)
+        ).filter(id_pattient = pattient)
+        return cites
