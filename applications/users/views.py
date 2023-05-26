@@ -41,7 +41,7 @@ class CreateSuperUser(APIView):
             data["error"] = serializer.errors
             return Response(data)
         
-        user_exists = User.objects.user_exists(serializer.data["email"])
+        user_exists = User.objects.get_user_by_email(serializer.data["email"])
         if user_exists is not False: 
             data = _send_data(400, "bad request", "El usuario ya se encuentra registrado")
             return Response(data)

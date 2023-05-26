@@ -47,3 +47,4 @@ class UserManager(BaseUserManager, Manager):
             return self.get(email=email)
         except self.model.DoesNotExist:
             return False
+        
