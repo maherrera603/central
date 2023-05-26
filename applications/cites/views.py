@@ -13,6 +13,7 @@ from .models import Cites # TODO: change of cites to cite
 # serializers
 from .serializers import RegisterCiteSerializer
 from .serializers import UpdateCiteSerializer
+from .serializers import ResponseCiteSerializer
 
 # permissions
 from applications.users.permissions import IsEmployee
@@ -39,8 +40,9 @@ class RegisterCiteView(APIView):
             return Response(data)
         
         cites = Cites.objects.get_cites_by_pattient(pattient)
+        serializer = ResponseCiteSerializer(cites, many=True)
         data = _send_data(200, "OK", "citas solicitadas")
-        data["cites"] = cites.values()
+        data["cites"] = serializer.data
         return Response(data)
     
     def post(self, request):
@@ -147,3 +149,30 @@ class DetailCiteView(APIView):
             "status": cite.id_status.status,
         }
         return Response(data)
+    
+    
+class SearchCiteView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsPattient]
+    
+    def get(self, request, search):
+        pattient = Pattient.objects.get_user(request.user)
+        cites = Cites.objects.search_cite(pattient, search)
+        
+        if not pattient:
+            data = _send_data(400, "bad request", "El usuario no se ha autenticado")
+            return Response(data=data)
+        
+        if not cites:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data=data)
+        
+        serializer = ResponseCiteSerializer(cites, many=True)
+        
+        data = _send_data(200, "OK", "cita")
+        data["cites"] = serializer.data
+        return Response(data=data) 
+        
+                
+        
+        
