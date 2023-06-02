@@ -1,5 +1,5 @@
 from django.db.models import Manager
-
+from django.db.models import Q
 
 class EmployeeManager(Manager):
     def get_user(self, account):
@@ -37,6 +37,11 @@ class EmployeeManager(Manager):
             return employee
         except self.model.DoesNotExist:
             return False
+        
+    def search_employees(self, search,admin):
+        return self.filter(
+            Q(name__icontains=search) or Q(lastname__icontains=search) or Q(document__icontains=search)
+        ).exclude(id_user__id_role_id=1)
         
     
     

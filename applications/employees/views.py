@@ -11,6 +11,7 @@ from .models import Employee
 
 # serializers
 from .serializers import EmployeeSerializer 
+from .serializers import EmployeeSearchSerializer
 from .serializers import UpdatedEmployeeSerializer
 
 # permissions
@@ -38,27 +39,35 @@ class RegisterEmployeeView(APIView):
         return Response(data)
     
     def post(self, request):
-        serializer = EmployeeSerializer(data=request.data)
-        if not serializer.is_valid():
-            data = _send_data(400, "bad request", "complete los campos requeridos")
-            data["errors"] = serializer.errors
-
-        user = User.objects.get_user_by_email(serializer.data["email"])
-        employee = Employee.objects.get_employee_by_document(serializer.data["document"])
-        if user or employee:
-            data = _send_data(400, "bad request", "El usuario ya ha sido registrado")
+        admin = Employee.objects.get_user(request.user)
+        if not admin:
+            data = _send_data(404, "not found", "El usuario no se encuentra registrado")
             return Response(data)
         
+        serializer = EmployeeSerializer(data=request.data)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "Complete los campos requeridos")
+            data["errors"] = serializer.errors
+            return Response(data)
         
-        role = Role.objects.get_rol(serializer.data["role"])
-        user = User.objects.create_user(email=serializer.data["email"], password=serializer.data["password"], rol=role)
-        employee = Employee.objects.create_employee(serializer.data, user)
+        user = User.objects.get_user_by_email(serializer.data["email"])
+        if user:
+            data = _send_data(400, "bad request", "El usuario ya se encuentra registrado")
+            return Response(data)
+        
+        role = Role.objects.get_rol(2)
+        if not role:
+            data = _send_data(404, "not found", "no se encontro el rol")
+            return Response(data)
+        
+        userCreated = User.objects.create_user(serializer.data["email"], serializer.data["password"], role)        
+        employee = Employee.objects.create_employee(serializer.data, userCreated)
         employee.save()
         
-        data = _send_data(200, "OK", "empleado ha sido registrado correctamente")
+        data = _send_data(202, "created", "Empleado registrado correctamente")
         data["employee"] = serializer.data
         return Response(data)
-
+        
 
 class DeleteEmployeeView(APIView):
     authentication_classes = (TokenAuthentication, )
@@ -124,3 +133,22 @@ class UpdateProfileEmployee(APIView):
         return Response(data)
     
 
+class SearchEmployeesView(APIView):
+    authentication_classes = (TokenAuthentication ,)
+    permission_classes = [IsAdministrator]
+    
+    def get(self, request, search):
+        admin = Employee.objects.get_user(request.user)
+        if not admin:
+            data = _send_data(404, "not found", "no se encontro el usuario")
+            return Response(data)
+        
+        employees = Employee.objects.search_employees(search, admin)
+        if len(employees) == 0:
+            data = _send_data(404, "not found", "no se encontro ningun resultado")
+            return Response(data)
+        
+        serializer = EmployeeSearchSerializer(employees, many=True)
+        data = _send_data(200, "OK", "list employees")
+        data["employees"] = serializer.data
+        return Response(data)

@@ -10,7 +10,10 @@ class RoleManager(Manager):
             return False
     
     def get_rol(self, role):
-        return self.get(pk=role)
+        try:
+            return self.get(pk=role)
+        except self.model.DoesNotExist:
+            return False
     
     def get_all_roles(self):
         return self.all().exclude(role="Paciente")

@@ -17,6 +17,7 @@ from applications.users.permissions import IsAdministrator
 from .serializers import StatusSerializer 
 from .serializers import SpecialitySerializer
 from .serializers import DoctorSerializer
+from .serializers import AdministratorSerializer
 
 
 # Create your views here.
@@ -28,7 +29,48 @@ def _send_data(code: int, status: str, message: str):
     return data
 
 
-# TODO: implement views for doctors
+class DetailAdminsitratorView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsAdministrator]
+    
+    def get(self, request, document):
+        admin = Employee.objects.get_employee_by_document(document)
+        if not admin: 
+            data = _send_data(404, "not found", "administrador no encontrado")
+            return Response(data)
+        
+        data = _send_data(202, "OK", "datos del administrador")
+        data["administrator"] = {
+            "name": admin.name,
+            "lastname": admin.lastname,
+            "type_document": admin.type_document,
+            "document": admin.document,
+            "phone": admin.phone,
+        }
+        return Response(data)
+    
+    def put(self, request, document):
+        admin = Employee.objects.get_user(request.user)
+        if not admin:
+            data = _send_data(404, "not found", "El usuario no existe")
+            return Response(data)
+        
+        serializer = AdministratorSerializer(data=request.data)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "Complete los campos requeridos")
+            return Response(data)
+        
+        adminUpdate = Employee.objects.updated_employee(document, serializer.data)
+        if not adminUpdate:
+            data = _send_data(400, "bad request", "Error a actualizar datos del usuario")
+            return Response(data)
+        adminUpdate.save()
+        
+        data = _send_data(201, "created", "datos actualizados correctamente")
+        data["admin"] = serializer.data
+        return Response(data)
+        
+        
 class RegisterStatusView(APIView):
     authentication_classes = (TokenAuthentication, )
     permission_classes = [IsAdministrator]
