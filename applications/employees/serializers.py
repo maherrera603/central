@@ -7,17 +7,17 @@ from .models import Employee
 class EmployeeSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     password = serializers.CharField()
-    role = serializers.CharField(max_length=1)
     
     class Meta:
         model = Employee
-        exclude =  ['created_at', 'updated_at']
+        exclude =  ["created_at", "updated_at", "id_user"]
         
     def validate_password(self, password):
         if len(password) < 8 or len(password) > 12:
-            raise serializers.ValidationError('la contraseña debe contener de 8 a 12 caracteres')
+            raise serializers.ValidationError("la contraseña debe contener de 8 a 12 caracteres")
         return password
     
+
     
 class UpdatedEmployeeSerializer(serializers.Serializer):
     name = serializers.CharField()
@@ -40,3 +40,11 @@ class UpdatedEmployeeSerializer(serializers.Serializer):
         if len(phone) < 10 or len(phone) > 10:
             raise serializers.ValidationError("el telefono debe contener 10 caracteres") 
         return phone
+    
+    
+
+class EmployeeSearchSerializer(serializers.ModelSerializer):  
+    class Meta:
+        model = Employee
+        exclude =  ["created_at", "updated_at", "id_user"]
+        

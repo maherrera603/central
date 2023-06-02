@@ -1,5 +1,25 @@
 from rest_framework import serializers
 
+class AdministratorSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    lastname = serializers.CharField()
+    phone = serializers.CharField()
+    
+    def validate_name(self, name):
+        if len(name) < 3 or len(name) > 20:
+            return serializers.ValidationError("El campo debe contener de 3 a 20 caracteres")
+        return name
+    
+    def validate_lastname(self, lastname):
+        if len(lastname) < 3 or len(lastname) > 20:
+            return serializers.ValidationError("El campo debe contener de 3 a 20 caracteres")
+        return lastname
+    
+    def validate_phone(self, phone):
+        if len(phone) < 10 or len(phone) >10:
+            return serializers.ValidationError("El campo debe contener 10 caracteres")
+        return phone
+
 
 class StatusSerializer(serializers.Serializer):
     status = serializers.CharField()
