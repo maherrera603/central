@@ -1,4 +1,5 @@
 from django.db.models import Manager
+from django.db.models import Q
 
 
 class StatusManager(Manager):
@@ -41,7 +42,12 @@ class SpecialityManager(Manager):
     def update_speciality(self, speciality, data):
         speciality.speciality = data["speciality"]
         
-
+    def search_speciality(self, speciality):
+        try:
+            return self.filter(speciality__icontains=speciality)
+        except Exception:
+            return False
+        
 
 class DoctorManager(Manager):
     def get_all_doctors(self):
@@ -84,4 +90,12 @@ class DoctorManager(Manager):
         try:
             return self.get(pk=pk)
         except self.model.DoesNotExist:
+            return False
+
+    def search_doctor(self, search):
+        try:
+            return self.filter(
+               Q(name__icontains=search) or Q(lastname__icontains=search) or Q(document__icontains=search)
+            )
+        except Exception:
             return False
