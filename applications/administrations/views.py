@@ -172,7 +172,7 @@ class RegisterSpcialityView(APIView):
             return Response(data)
         
         
-        employee = Employee.objects.get_employee_by_user(request.user)
+        employee = Employee.objects.get_user(request.user)
         speciality = Speciality.objects.create_speciality(serializer.data, employee)
         speciality.save()
         data = _send_data(202, "created", "la especialidad ha sido registrada")
@@ -181,6 +181,27 @@ class RegisterSpcialityView(APIView):
             "speciality": speciality.speciality,
             "id_employee": speciality.id_employee.id
         }
+        return Response(data)
+
+
+class SearchSpecialityView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsAdministrator]
+
+    def get(self, request, speciality):
+        admin = Employee.objects.get_user(request.user)
+        if not admin:
+            data = _send_data(404, "not found", "No se encontro el administrador")
+            return Response(data)
+        
+        specialitys = Speciality.objects.search_speciality(speciality)
+        if not specialitys:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data)
+        
+        serializer = SpecialitySerializer(specialitys, many=True)
+        data = _send_data(200, "OK", "listado de especialidades")
+        data["specialitys"] = serializer.data
         return Response(data)
 
 
@@ -208,7 +229,7 @@ class DetailSpecialityView(APIView):
             data["errors"] = serializer.errors
             return Response(data)
         
-        employee = Employee.objects.get_employee_by_user(request.user)
+        employee = Employee.objects.get_user(request.user)
         if not employee:
             data = _send_data(404, "not found", "El empleado no se encontro")
             return Response(data)
@@ -222,7 +243,7 @@ class DetailSpecialityView(APIView):
         speciality.id_employee = employee
         speciality.save()
         
-        data = _send_data(202, "created", "especialidad creada")
+        data = _send_data(202, "created", "especialidad Actualizada")
         data["specialiity"] = {
             "id": speciality.id,
             "speciality": speciality.speciality,
@@ -231,7 +252,7 @@ class DetailSpecialityView(APIView):
         return Response(data)
         
     def delete(self, request, speciality):
-        employee = Employee.objects.get_employee_by_user(request.user)
+        employee = Employee.objects.get_user(request.user)
         if not employee:
             data = _send_data(404, "not found", "el empleado no se encontro")
             return Response(data)
@@ -264,7 +285,7 @@ class RegisterDoctorView(APIView):
             data["errors"] = serializer.errors
             return Response(data)
         
-        employee = Employee.objects.get_employee_by_user(request.user)
+        employee = Employee.objects.get_user(request.user)
         if not employee:
             data = _send_data(404, "not found", "el empleado no se encontro")
             return Response(data)
@@ -331,7 +352,7 @@ class DetailDoctorView(APIView):
             data["errors"] = serializer.errors 
             return Response(data)
         
-        employee = Employee.objects.get_employee_by_user(request.user)
+        employee = Employee.objects.get_user(request.user)
         if not employee:
             data = _send_data(404, "not found", "no se encontro el empleado")
             return Response(data)
@@ -375,5 +396,23 @@ class DetailDoctorView(APIView):
 
         data = _send_data(204, "not content", "el doctor ha sido eliminado")
         return Response(data)
-        
-        
+
+
+class SearchDoctorView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsAdministrator]
+
+    def get(self, request, search):
+        admin = Employee.objects.get_user(request.user)
+        if not admin:
+            data = _send_data(404, "not found", "El Usuario no se encontro")
+            return Response(data)
+
+        doctors = Doctor.objects.search_doctor(search)
+        if not doctors:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data)
+
+        data = _send_data(200, "OK", "listado de doctores")
+        data["doctors"] = doctors.values()
+        return Response(data)
