@@ -41,3 +41,11 @@ class CiteManager(Manager):
             Q(name__icontains=search) | Q(lastname__icontains = search) | Q(document__icontains = search)
         ).filter(id_pattient = pattient)
         return cites
+    
+    def all_cites(self):
+        return self.all()
+    
+    def get_cite_search(self, search):
+        return self.filter(
+            Q(name__icontains=search) or Q(lastname__icontains=search) or Q(document__icontains=search)
+        )

@@ -8,6 +8,7 @@ from applications.pattients.models import Family
 from applications.administrations.models import Speciality
 from applications.administrations.models import Status
 from applications.administrations.models import Doctor
+from applications.employees.models import Employee
 from .models import Cites # TODO: change of cites to cite
 
 # serializers
@@ -31,7 +32,7 @@ def _send_data(code: int, status: str, message: str):
 
 class RegisterCiteView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsPattient]
+    permission_classes = [IsPattient, IsEmployee]
     
     def get(self, request):
         pattient = Pattient.objects.get_user(request.user)
@@ -87,7 +88,7 @@ class RegisterCiteView(APIView):
 
 class DetailCiteView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsEmployee|IsPattient]
+    permission_classes = [IsEmployee]
     
     def get(self,request, pk):
         cite = Cites.objects.get_cite_by_pk(pk)
@@ -110,7 +111,7 @@ class DetailCiteView(APIView):
             "status" : cite.id_status.status
         }
         return Response(data)
-    
+    #TODO: remove this method
     def put(self, request, pk):
         serializer = UpdateCiteSerializer(data=request.data)
         if not serializer.is_valid():
@@ -174,5 +175,68 @@ class SearchCiteView(APIView):
         return Response(data=data) 
         
                 
+class AllCitesView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsEmployee]
+    
+    def get(self, request):
+        employee = Employee.objects.get_user(request.user)
+        if not employee:
+            data = _send_data(404, "not found", "el usuario no existe")
+            return Response(data)
+        
+        cites = Cites.objects.all_cites()
+        serializer = ResponseCiteSerializer(cites, many=True)
+        data = _send_data(200, "OK", "citas solicitadas")
+        data["cites"] = serializer.data
+        return Response(data)
+
+
+class SearchCiteForEmployee(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsEmployee]
+    
+    def get(self, request, search):
+        employee = Employee.objects.get_user(request.user)
+        if not employee:
+            data = _send_data(404, "not found", "usuario no encontrado")
+            return Response(data)
+        
+        cites = Cites.objects.get_cite_search(search)
+        if cites.count() < 1:
+            data = _send_data(404, "not found", "no se encontraron resultados") 
+            return Response(data)
+        
+        serializer = ResponseCiteSerializer(cites, many=True)
+        data = _send_data(200, "OK", "lists of cites")
+        data["cites"] = serializer.data
+        return Response(data)
         
         
+class DetailCiteForEmployeeView(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsEmployee]
+    
+    def get(self, request, pk):
+        employee = Employee.objects.get_user(request.user)
+        if not employee:
+            data = _send_data(404, "not found", "el usuario no existe")
+            return Response(data)
+        
+        cite = Cites.objects.get_cite_by_pk(pk)
+        if not cite:
+            data = _send_data(404, "not found", "cita no encontrada")
+            return Response(data)
+        
+        data = _send_data(200, "OK", "data of cite");
+        data["cite"] = {
+            "name": cite.name,
+            "lastname": cite.lastname,
+            "type_document": cite.type_document,
+            "document": cite.document,
+            "phone": cite.phone,
+            "eps": cite.eps,
+            "speciality": cite.id_speciality.speciality,
+            "status": cite.id_status.status,
+        }
+        return Response(data)
