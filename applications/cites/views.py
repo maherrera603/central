@@ -88,7 +88,7 @@ class RegisterCiteView(APIView):
 
 class DetailCiteView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsEmployee]
+    permission_classes = [IsPattient]
     
     def get(self,request, pk):
         cite = Cites.objects.get_cite_by_pk(pk)
