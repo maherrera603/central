@@ -32,7 +32,7 @@ def _send_data(code: int, status: str, message: str):
 
 class RegisterCiteView(APIView):
     authentication_classes = (TokenAuthentication, )
-    permission_classes = [IsPattient, IsEmployee]
+    permission_classes = [IsPattient]
     
     def get(self, request):
         pattient = Pattient.objects.get_user(request.user)
