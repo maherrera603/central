@@ -4,7 +4,7 @@ from django.db.models import Q
 class EmployeeManager(Manager):
     def get_user(self, account):
         try: 
-            return self.get(id_user=account)
+            return self.get(user=account)
         except self.model.DoesNotExist:
             return False
         

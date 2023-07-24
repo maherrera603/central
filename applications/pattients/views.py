@@ -45,21 +45,13 @@ class RegisterPattientView(APIView):
         if not rol:
             data = _send_data(404, "not found", "rol no encontrado")
             return Response(data)
-
-        print(f"despues del rol {user} {pattient}")
         
         user = User.objects.create_user(serializer.data["email"], serializer.data["password"], rol)
         pattient = Pattient.objects.create_pattient(serializer.data, user)
         pattient.save()
 
         data = _send_data(202, "created", "El usuario ha sido creado")
-        data["pattient"] = {
-            "name": pattient.name,
-            "lastname": pattient.lastname,
-            "type_document": pattient.type_document,
-            "document": pattient.document,
-            "phone": pattient.phone
-        }
+        data["pattient"] = serializer.data
         return Response(data)
 
 
