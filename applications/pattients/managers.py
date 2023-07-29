@@ -27,7 +27,7 @@ class PattientManager(Manager):
 
 class FamilyManager(Manager):
     def get_families_by_pattient(self, pattient):
-        return self.filter(id_pattient=pattient)
+        return self.filter(pattient=pattient)
     
     def get_family_by_document(self, document):
         try:
@@ -38,15 +38,15 @@ class FamilyManager(Manager):
     def create_family(self, data, pattient):
         family = self.model()
         family.name = data["name"]
-        family.lastname = data["lastname"]
+        family.last_name = data["last_name"]
         family.type_document = data["type_document"]
         family.document = data["document"]
         family.phone = data["phone"]
-        family.id_pattient = pattient
+        family.pattient = pattient
         return family
     
     def search_family(self, search, pattient):
         return self.filter(
-            Q(name__icontains=search) | Q(lastname__icontains=search) | Q(document__icontains=search) 
-        ).filter(id_pattient=pattient)
+            Q(name__icontains=search) | Q(last_name__icontains=search) | Q(document__icontains=search) 
+        ).filter(pattient=pattient)
     

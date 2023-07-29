@@ -9,7 +9,7 @@ from .managers import CiteManager
 # Create your models here.
 class Cites(models.Model):
     name = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
     type_document = models.CharField(max_length=30)
     document = models.CharField(max_length=20)
     phone = models.CharField(max_length=10, blank=True)

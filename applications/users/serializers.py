@@ -6,15 +6,24 @@ from .models import Role
 
 
 class RoleResponseSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(write_only=False)
     class Meta:
         model = Role
         fields = ["id", "role"]    
 
 class UserResponseSerializer(serializers.ModelSerializer):
-    role = RoleResponseSerializer()
+    role = RoleResponseSerializer(write_only=False)
+    email = serializers.EmailField(write_only=False)
     class Meta:
         model = User
         fields = ["id", "email", "role"]
+        
+class UserSerializer(serializers.ModelSerializer):
+    role = RoleResponseSerializer(write_only=False, required=False)
+
+    class Meta:
+        model = User
+        fields = ["id", "email", "password","role"]
 
 class SuperUserSerializer(serializers.Serializer):
     email = serializers.CharField()

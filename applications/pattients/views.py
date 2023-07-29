@@ -9,6 +9,7 @@ from .models import Pattient
 from .models import Family
 
 #serializers
+from .serializers import PattientResponseSerializer
 from .serializers import RegisterSerilizer
 from .serializers import UpdatedSerializer 
 from .serializers import FamilySerializer 
@@ -35,7 +36,8 @@ class RegisterPattientView(APIView):
             data["errors"] = serializer.errors
             return Response(data)
         
-        user = User.objects.get_user_by_email(serializer.data["email"])
+        
+        user = User.objects.get_user_by_email(serializer.data["user"]["email"])
         pattient = Pattient.objects.get_pattient_by_document(serializer.data["document"])
         if user or pattient:
             data = _send_data(400, "bad request", "el usuario ya se encuentra registrado")
@@ -46,7 +48,7 @@ class RegisterPattientView(APIView):
             data = _send_data(404, "not found", "rol no encontrado")
             return Response(data)
         
-        user = User.objects.create_user(serializer.data["email"], serializer.data["password"], rol)
+        user = User.objects.create_user(serializer.data["user"]["email"], serializer.data["user"]["password"], rol)
         pattient = Pattient.objects.create_pattient(serializer.data, user)
         pattient.save()
 
@@ -66,15 +68,9 @@ class UpdatedPattientView(APIView):
             data = _send_data(404,"not found",  "el usuario no existe")
             return Response(data)
 
+        serializer = PattientResponseSerializer(pattient)
         data = _send_data(200, "OK", "datos del usuario")
-        data["pattient"] = {
-            "name": pattient.name,
-            "lastname": pattient.lastname,
-            "type_document": pattient.type_document,
-            "document": pattient.document,
-            "phone": pattient.phone,
-            "eps": pattient.eps,
-        }
+        data["pattient"] = serializer.data
         
         return Response(data)
         
@@ -91,21 +87,14 @@ class UpdatedPattientView(APIView):
             return Response(data)
         
         pattient.name = serializer.data["name"]
-        pattient.lastname = serializer.data["lastname"]
+        pattient.last_name = serializer.data["last_name"]
         pattient.phone = serializer.data["phone"]
         pattient.eps = serializer.data["eps"]
         pattient.save()
+        response_serializer = PattientResponseSerializer(pattient)
         
         data = _send_data(202, "created", "los datos del usuario han sido actualizado")
-        data["pattient"] = {
-            "id": pattient.id,
-            "name": pattient.name,
-            "lastname": pattient.lastname,
-            "type_document": pattient.type_document,
-            "document": pattient.document,
-            "phone": pattient.phone,
-            "eps": pattient.eps
-        }
+        data["pattient"] = response_serializer.data
         return Response(data)
 
 
@@ -121,8 +110,9 @@ class FamilyView(APIView):
             return Response(data)
         
         families = Family.objects.get_families_by_pattient(pattient)
+        serializer = FamilySerializer(families, many=True)
         data = _send_data(200, "OK", "familiares")
-        data["familys"] = families.values()
+        data["familys"] = serializer.data
         return Response(data)
 
     def post(self, request):
@@ -146,15 +136,7 @@ class FamilyView(APIView):
         family.save()
         
         data = _send_data(202, "created", "familiar registrado correctamente")
-        data["family"] = {
-            "name": family.name,
-            "lastname": family.lastname,
-            "type_document": family.type_document,
-            "document": family.document,
-            "phone": family.phone,
-            "eps": family.eps,
-            "pattient": family.id_pattient.name
-        }
+        data["family"] = FamilySerializer(family).data
         return Response(data)
 
 
@@ -168,16 +150,10 @@ class DetailFamilyView(APIView):
             data = _send_data(404, "not fount", "familiar no encontrado")
             return Response(data)
         
+        serializer = FamilySerializer(family)
+        
         data = _send_data(200, 'OK', "datos del familiar")
-        data['family'] = {
-            "id": family.id,
-            "name": family.name,
-            "lastname": family.lastname,
-            "type_document": family.type_document,
-            "document": family.document,
-            "phone": family.phone,
-            "eps": family.eps
-        }
+        data['family'] = serializer.data
         return Response(data)
     
     def put(self, request, document):
@@ -191,21 +167,14 @@ class DetailFamilyView(APIView):
             return Response(data)
 
         family.name = serializer.data["name"]
-        family.lastname = serializer.data["lastname"]
+        family.last_name = serializer.data["last_name"]
         family.phone = serializer.data["phone"]
         family.save()
         
+        family_serializer = FamilySerializer(family)
+        
         data = _send_data(202, "created", "datos del familiar actualizados")
-        data["family"] = {
-            "id": family.id,
-            "name": family.name,
-            "lastname": family.lastname,
-            "type_document": family.type_document,
-            "document": family.document,
-            "phone": family.phone,
-            "eps": family.eps,
-            "pattient": family.id_pattient.name
-        }
+        data["family"] = family_serializer.data
         return Response(data)
     
     
@@ -236,7 +205,7 @@ class SearchFamilyView(APIView):
         if not familys:
             data = _send_data(404, "not found", "No se encontraron resultados")
             return Response(data)
-        
+        serializer = FamilySerializer(familys, many=True)
         data = _send_data(200, "OK", "familiares")
-        data["familys"] = familys.values()
+        data["familys"] = serializer.data
         return Response(data)

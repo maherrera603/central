@@ -12,9 +12,11 @@ from applications.employees.models import Employee
 from .models import Cites # TODO: change of cites to cite
 
 # serializers
+from .serializers import CiteResponseSerializer
 from .serializers import RegisterCiteSerializer
 from .serializers import UpdateCiteSerializer
 from .serializers import ResponseCiteSerializer
+from .serializers import CiteSerializer
 
 # permissions
 from applications.users.permissions import IsEmployee
@@ -41,7 +43,7 @@ class RegisterCiteView(APIView):
             return Response(data)
         
         cites = Cites.objects.get_cites_by_pattient(pattient)
-        serializer = ResponseCiteSerializer(cites, many=True)
+        serializer = CiteResponseSerializer(cites, many=True)
         data = _send_data(200, "OK", "citas solicitadas")
         data["cites"] = serializer.data
         return Response(data)
@@ -53,12 +55,13 @@ class RegisterCiteView(APIView):
             data["errors"] = serializer.errors
             return Response(data)
         
-        speciality = Speciality.objects.get_speciality(serializer.data["speciality"])
+        speciality = Speciality.objects.get_speciality_by_pk(serializer.data["speciality"])
         if not speciality:
             data = _send_data(404, "not found", "la especialidad no se encontro")
+            data["serializer"] = serializer.data["speciality"]
             return Response(data)
         
-        status = Status.objects.get_status(serializer.data["status"])
+        status = Status.objects.get_status(serializer.data["status"]["id"])
         if not status:
             data = _send_data(404, "not found", "el estado no se encontro")
             return Response(data)
@@ -72,17 +75,7 @@ class RegisterCiteView(APIView):
         cite.save()
         
         data = _send_data(202, "created", "la cita ha sido solicitada")
-        data["cite"] = {
-            "name": cite.name,
-            "lastname": cite.lastname,
-            "type_document": cite.type_document,
-            "document": cite.document,
-            "phone": cite.phone,
-            "eps": cite.eps,
-            "specialidad": cite.id_speciality.speciality,
-            "status": cite.id_status.status,
-            "pattient": cite.id_pattient.name
-        }
+        data["cite"] = serializer.data
         return Response(data)
             
 
@@ -96,21 +89,11 @@ class DetailCiteView(APIView):
             data = _send_data(404, "not found", "cita no encontrada")
             return Response(data)
         
+        serializer = CiteSerializer(cite)
         data = _send_data(200, "OK", "Detalle de la cita")
-        data["cite"] = {
-            "name": cite.name,
-            "lastname": cite.lastname,
-            "type_document": cite.type_document,
-            "document": cite.document,
-            "phone": cite.phone,
-            "eps": cite.eps,
-            "speciality": cite.id_speciality.speciality,
-            "doctor": cite.id_doctor.name,
-            "date": cite.date_cite,
-            "hour": cite.hour_cite,
-            "status" : cite.id_status.status
-        }
+        data["cite"] = serializer.data
         return Response(data)
+    
     #TODO: remove this method
     def put(self, request, pk):
         serializer = UpdateCiteSerializer(data=request.data)
@@ -186,7 +169,7 @@ class AllCitesView(APIView):
             return Response(data)
         
         cites = Cites.objects.all_cites()
-        serializer = ResponseCiteSerializer(cites, many=True)
+        serializer = CiteResponseSerializer(cites, many=True)
         data = _send_data(200, "OK", "citas solicitadas")
         data["cites"] = serializer.data
         return Response(data)
@@ -228,15 +211,37 @@ class DetailCiteForEmployeeView(APIView):
             data = _send_data(404, "not found", "cita no encontrada")
             return Response(data)
         
+        serializer = CiteResponseSerializer(cite)
         data = _send_data(200, "OK", "data of cite");
-        data["cite"] = {
-            "name": cite.name,
-            "lastname": cite.lastname,
-            "type_document": cite.type_document,
-            "document": cite.document,
-            "phone": cite.phone,
-            "eps": cite.eps,
-            "speciality": cite.id_speciality.speciality,
-            "status": cite.id_status.status,
-        }
+        data["cite"] = serializer.data
+        return Response(data)
+    
+    def put(self, request, pk):
+        employee = Employee.objects.get_user(request.user)
+        if not employee:
+            data = _send_data(400, "bad request", "el usuario no existe")
+            return Response(data)
+        
+        serializer = CiteResponseSerializer(data=request.data)
+        if not serializer.is_valid():
+            data = _send_data(400, "bad request", "Complete los campos requeridos")
+            data["errors"] = serializer.errors
+            return Response(data)
+        
+        
+        status = Status.objects.get_status(serializer.data["status"]["id"])
+        if not status: 
+            data = _send_data(404, "not found", "El estado no se encontro")
+            return Response(data)
+        
+        doctor = Doctor.objects.get_doctor_by_pk(serializer.data["doctor"])
+        if not doctor:
+            data = _send_data(404, "not found", "El doctor no se encontro")
+            return Response(data)
+        
+        cite = Cites.objects.update_cite(pk, serializer.data, doctor, status)
+        cite.save()
+        
+        data = _send_data(202, "created", "La cita ha sido actualizada")
+        data["cite"] = serializer.data
         return Response(data)
