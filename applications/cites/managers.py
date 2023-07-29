@@ -3,19 +3,19 @@ from django.db.models import Q
 
 class CiteManager(Manager):
     def get_cites_by_pattient(self, pattient):
-        return self.filter(id_pattient=pattient)
+        return self.filter(pattient=pattient)
     
     def created_cite(self, data, speciality, status, pattient):
         cite = self.model()
         cite.name = data["name"]
-        cite.lastname = data["lastname"]
+        cite.last_name = data["last_name"]
         cite.type_document = data["type_document"]
         cite.document = data["document"]
         cite.phone = data["phone"]
         cite.eps = data["eps"]
-        cite.id_speciality = speciality
-        cite.id_status = status
-        cite.id_pattient = pattient
+        cite.speciality = speciality
+        cite.status = status
+        cite.pattient = pattient
         return cite
     
     def get_cite_by_pk(self, pk):
@@ -25,21 +25,21 @@ class CiteManager(Manager):
             return False
         
         
-    def update_cite(self, pk, data, doctor, statu):
+    def update_cite(self, pk, data, doctor, status):
         try:
             cite = self.get(pk=pk)
-            cite.id_doctor = doctor
+            cite.doctor = doctor
             cite.date_cite = data["date_cite"]
             cite.hour_cite = data["hour_cite"]
-            cite.id_status = statu
+            cite.status = status
             return cite
         except self.model.DoesNotExist:
             return False
         
     def search_cite(self, pattient, search):
         cites = self.filter(
-            Q(name__icontains=search) | Q(lastname__icontains = search) | Q(document__icontains = search)
-        ).filter(id_pattient = pattient)
+            Q(name__icontains=search) | Q(last_name__icontains = search) | Q(document__icontains = search)
+        ).filter(pattient = pattient)
         return cites
     
     def all_cites(self):

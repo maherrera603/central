@@ -6,49 +6,31 @@ from rest_framework import serializers
 from .models import Cites
 from applications.administrations.models import Status
 
+# serializers
 from applications.administrations.serializers import StatusSerializer
+from applications.pattients.serializers import PattientResponseSerializer
+from applications.administrations.serializers import StatusResponseSerializer
+from applications.administrations.serializers import SpecialityResponseSerializer
+from applications.administrations.serializers import DoctorResponseSerializer
 
 
-class RegisterCiteSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    lastname = serializers.CharField()
-    type_document = serializers.CharField()
-    document = serializers.CharField()
-    phone = serializers.CharField()
-    eps = serializers.CharField()
-    speciality = serializers.CharField()
-    status = serializers.CharField()
+class CiteResponseSerializer(serializers.ModelSerializer):
+    pattient = PattientResponseSerializer(write_only=False)
+    status = StatusResponseSerializer(write_only=False)
+    speciality = SpecialityResponseSerializer(write_only=False)
     
-    def validate_name(self, name):
-        if len(name) < 3 or len(name) > 20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return name
+    class Meta: 
+        model = Cites
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "eps", "speciality", "doctor", "status",  "date_cite", "hour_cite", "pattient"]
+
+
+class RegisterCiteSerializer(serializers.ModelSerializer):
+    status = StatusResponseSerializer(write_only=False)
+    pattient = PattientResponseSerializer(write_only=False)
     
-    def validate_lastname(self, lastname):
-        if len(lastname) < 3 or len(lastname) > 20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return lastname 
-    
-    
-    def validate_phone(self, phone):
-        if len(phone) < 10 or len(phone) > 10:
-            raise serializers.ValidationError("el campo debe contener 10 caracteres")
-        return phone 
-    
-    def validate_eps(self, eps):
-        if len(eps) < 3 or len(eps) > 20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return eps 
-    
-    def validate_speciality(self, speciality):
-        if len(speciality) < 3 or len(speciality) > 20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return speciality 
-    
-    def validate_status(self, status):
-        if len(status) < 3 or len(status) > 20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return status 
+    class Meta:
+        model = Cites
+        fields = ["name", "last_name", "type_document", "document", "phone", "eps", "speciality", "status", "pattient"]
     
     
 class UpdateCiteSerializer(serializers.Serializer):
@@ -86,3 +68,14 @@ class ResponseCiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cites
         fields = "__all__"
+
+
+class CiteSerializer(serializers.ModelSerializer):
+    pattient = PattientResponseSerializer(write_only=False)
+    status = StatusResponseSerializer(write_only=False)
+    speciality = SpecialityResponseSerializer(write_only=False)
+    doctor = DoctorResponseSerializer(write_only=False)
+    
+    class Meta: 
+        model = Cites
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "eps", "speciality", "doctor", "status",  "date_cite", "hour_cite", "pattient"]

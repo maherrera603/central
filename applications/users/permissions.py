@@ -7,18 +7,18 @@ class IsAdministrator(IsAuthenticated):
         if request.method in permissions.SAFE_METHODS:
             return True
             return request.user.id_role.id == 1 or request.user.id_role.id == 2 or request.user.id_role.id == 3  
-        return request.user.id_role.id == 1
+        return request.user.role.id == 2
 
     
 class IsEmployee(IsAuthenticated):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
-            return request.user.id_role.id == 2
-        return request.user.id_role.id == 2
+            return request.user.role.id == 3
+        return request.user.role.id == 3
         
           
 class IsPattient(IsAuthenticated):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.id_role.id == 3
+        return request.user.role.id == 1

@@ -17,6 +17,7 @@ from .models import User
 from .serializers import SuperUserSerializer 
 from .serializers import RoleSerializer
 from .serializers import LoginSerializer
+from applications.pattients.serializers import PattientResponseSerializer
 
 # permissions
 from .permissions import IsAdministrator
@@ -79,7 +80,9 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             data = _send_data(400, "bad request", "complete los campos requeridos")
+            data["errors"] = serializer.errors
             return Response(data)
+        
         
         email = serializer.data['email']
         password = serializer.data['password']
@@ -88,7 +91,7 @@ class LoginView(APIView):
             data = _send_data(400, 'bad request', 'El correo y/o contraseña son incorrectos, intentelo de nuevo')
             return Response(data)
         
-        Table = Pattient if account.id_role.id == 3 else Employee
+        Table = Pattient if account.role.id == 1 else Employee
         user = Table.objects.get_user(account)
         if not user:
             data = _send_data(404, "not found", "el usuario no existe")
@@ -96,17 +99,12 @@ class LoginView(APIView):
         
         token = Token.objects.get_or_create(user=account)[0]
         
+        serializer = PattientResponseSerializer(user)
+        
         data = _send_data(200, 'OK', 'Login Correcto')
         data['token'] = token.key
-        data['role'] = account.id_role.role
-        data['user'] = {
-            'name': user.name,
-            'lastname': user.lastname,
-            'type_document': user.type_document,
-            'document': user.document,
-            'phone': user.phone,
-            'email': account.email,
-        }
+        data['role'] = account.role.role
+        data['user'] = serializer.data
         return Response(data)
   
     
@@ -115,6 +113,6 @@ class LogoutView(APIView):
     permission_classes = [IsAdministrator|IsEmployee|IsPattient]
 
     def delete(self, request):
-        request.user.auth_token.delete()
+        # request.user.auth_token.delete()
         data = _send_data(204, 'not content', 'sesion cerrada exitosamente')
         return Response(data)

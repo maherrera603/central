@@ -12,12 +12,18 @@ from .models import Doctor
 
 # permissions
 from applications.users.permissions import IsAdministrator
+from applications.users.permissions import IsEmployee
 
 #serializers
+
 from .serializers import StatusSerializer 
+from .serializers import SpecialityResponseSerializer
 from .serializers import SpecialitySerializer
+from .serializers import DoctorResponseSerializer
 from .serializers import DoctorSerializer
 from .serializers import AdministratorSerializer
+from applications.employees.serializers import EmployeeResponseSerializer
+
 
 
 # Create your views here.
@@ -39,14 +45,9 @@ class DetailAdminsitratorView(APIView):
             data = _send_data(404, "not found", "administrador no encontrado")
             return Response(data)
         
+        serializer = EmployeeResponseSerializer(admin)
         data = _send_data(202, "OK", "datos del administrador")
-        data["administrator"] = {
-            "name": admin.name,
-            "lastname": admin.lastname,
-            "type_document": admin.type_document,
-            "document": admin.document,
-            "phone": admin.phone,
-        }
+        data["employee"] = serializer.data
         return Response(data)
     
     def put(self, request, document):
@@ -58,6 +59,7 @@ class DetailAdminsitratorView(APIView):
         serializer = AdministratorSerializer(data=request.data)
         if not serializer.is_valid():
             data = _send_data(400, "bad request", "Complete los campos requeridos")
+            data["errors"] = serializer.errors
             return Response(data)
         
         adminUpdate = Employee.objects.updated_employee(document, serializer.data)
@@ -66,8 +68,9 @@ class DetailAdminsitratorView(APIView):
             return Response(data)
         adminUpdate.save()
         
+        serializer_admin = EmployeeResponseSerializer(adminUpdate)
         data = _send_data(201, "created", "datos actualizados correctamente")
-        data["admin"] = serializer.data
+        data["admin"] = serializer_admin.data
         return Response(data)
         
         
@@ -156,11 +159,12 @@ class RegisterSpcialityView(APIView):
     def get(self, request):
         specialitys = Speciality.objects.get_all_specialities()
         data = _send_data(200, "OK", "listado de especialidades")
-        data["specialitys"] = specialitys.values()
+        serializer = SpecialityResponseSerializer(specialitys, many=True)
+        data["specialitys"] = serializer.data
         return Response(data)
     
     def post(self, request):
-        serializer = SpecialitySerializer(data=request.data)
+        serializer = SpecialityResponseSerializer(data=request.data)
         if not serializer.is_valid():
             data = _send_data(400, "bad request", "complete los campos del formulario")
             data["errors"] = serializer.errors
@@ -176,11 +180,7 @@ class RegisterSpcialityView(APIView):
         speciality = Speciality.objects.create_speciality(serializer.data, employee)
         speciality.save()
         data = _send_data(202, "created", "la especialidad ha sido registrada")
-        data["speciality"] = {
-            "id" : speciality.id,
-            "speciality": speciality.speciality,
-            "id_employee": speciality.id_employee.id
-        }
+        data["speciality"] = serializer.data
         return Response(data)
 
 
@@ -199,7 +199,7 @@ class SearchSpecialityView(APIView):
             data = _send_data(404, "not found", "No se encontraron resultados")
             return Response(data)
         
-        serializer = SpecialitySerializer(specialitys, many=True)
+        serializer = SpecialityResponseSerializer(specialitys, many=True)
         data = _send_data(200, "OK", "listado de especialidades")
         data["specialitys"] = serializer.data
         return Response(data)
@@ -209,21 +209,19 @@ class DetailSpecialityView(APIView):
     authentication_classes = (TokenAuthentication, )
     permission_classes = [IsAdministrator]
     
-    def get(self, request, speciality):
-        speciality = Speciality.objects.get_speciality(speciality)
+    def get(self, request, pk):
+        speciality = Speciality.objects.get_speciality_by_pk(pk)
         if not speciality:
             data = _send_data(404, "not found", "Especialidad no econtrada")
             return Response(data)
         
+        serializer = SpecialityResponseSerializer(speciality)
         data = _send_data(200, "OK", "Detalle especialidad")
-        data["speciality"] = {
-            "id": speciality.id,
-            "speciality": speciality.speciality
-        }
+        data["speciality"] = serializer.data
         return Response(data)
     
-    def put(self, request, speciality):
-        serializer = SpecialitySerializer(data=request.data)
+    def put(self, request, pk):
+        serializer = SpecialityResponseSerializer(data=request.data)
         if not serializer.is_valid():
             data = _send_data(400, "bad request", "complete los campos del formulario")
             data["errors"] = serializer.errors
@@ -234,30 +232,26 @@ class DetailSpecialityView(APIView):
             data = _send_data(404, "not found", "El empleado no se encontro")
             return Response(data)
         
-        speciality = Speciality.objects.get_speciality(speciality)
+        speciality = Speciality.objects.get_speciality_by_pk(pk)
         if not speciality:
             data = _send_data(404, "not found", "la especialidad no se encontro")
             return Response(data)
 
         speciality.speciality = serializer.data["speciality"]
-        speciality.id_employee = employee
+        speciality.employee = employee
         speciality.save()
         
         data = _send_data(202, "created", "especialidad Actualizada")
-        data["specialiity"] = {
-            "id": speciality.id,
-            "speciality": speciality.speciality,
-            "employee": speciality.id_employee.id
-        }
+        data["specialiity"] = serializer.data
         return Response(data)
         
-    def delete(self, request, speciality):
+    def delete(self, request, pk):
         employee = Employee.objects.get_user(request.user)
         if not employee:
             data = _send_data(404, "not found", "el empleado no se encontro")
             return Response(data)
         
-        speciality = Speciality.objects.get_speciality(speciality)
+        speciality = Speciality.objects.get_speciality_by_pk(pk)
         if not speciality:
             data = _send_data(404, "not found", "la especialidad no se encontro")
             return Response(data)
@@ -275,7 +269,8 @@ class RegisterDoctorView(APIView):
     def get(self, request):
         doctors = Doctor.objects.get_all_doctors()
         data = _send_data(200, "OK", "listado de doctores")
-        data["doctors"] = doctors.values()
+        serializer = DoctorResponseSerializer(doctors, many=True)
+        data["doctors"] = serializer.data
         return Response(data)
     
     def post(self, request):
@@ -295,7 +290,7 @@ class RegisterDoctorView(APIView):
             data = _send_data(400, "bad request", "el doctor ya ha sido registrado correctamente")
             return Response(data)
         
-        speciality = Speciality.objects.get_speciality(serializer.data["speciality"])
+        speciality = Speciality.objects.get_speciality_by_pk(serializer.data["speciality"])
         if not speciality:
             data = _send_data(404, "not found", "la especialidad no fue encontrada")
             return Response(data)
@@ -307,18 +302,9 @@ class RegisterDoctorView(APIView):
         
         doctor = Doctor.objects.created_doctor(serializer.data, employee, speciality, status)
         doctor.save()
-        
+        serializer_doctor = DoctorResponseSerializer(doctor)
         data = _send_data(202, "created", "el doctor ha sido añadido")
-        data["doctor"] = {
-            "id": doctor.id,
-            "name": doctor.name,
-            "lastname": doctor.lastname,
-            "type_document": doctor.type_document,
-            "document": doctor.document,
-            "id_speciality": doctor.id_speciality.id,
-            "id_status": doctor.id_status.id,
-            "id_employee": doctor.id_employee.id
-        } 
+        data["doctor"] = serializer_doctor.data
         return Response(data)
     
     
@@ -332,17 +318,9 @@ class DetailDoctorView(APIView):
             data = _send_data(404, "not found", "el doctor no se encontro")
             return Response(data)
         
+        serializer = DoctorSerializer(doctor)
         data = _send_data(200, "OK", "datos del doctor")
-        data["doctor"] = {
-            "id": doctor.id,
-            "name": doctor.name,
-            "lastname": doctor.lastname,
-            "type_document": doctor.type_document,
-            "document": doctor.document,
-            "phone": doctor.phone,
-            "speciality": doctor.id_speciality.speciality,
-            "status": doctor.id_status.status
-        }
+        data["doctor"] = serializer.data
         return Response(data)
     
     def put(self, request, document):
@@ -357,7 +335,7 @@ class DetailDoctorView(APIView):
             data = _send_data(404, "not found", "no se encontro el empleado")
             return Response(data)
         
-        speciality = Speciality.objects.get_speciality(serializer.data["speciality"])
+        speciality = Speciality.objects.get_speciality_by_pk(serializer.data["speciality"])
         if not speciality:
             data = _send_data(404, "not found", "no se encontro la especialidad")
             return Response(data)
@@ -371,19 +349,12 @@ class DetailDoctorView(APIView):
         if not doctor:
             data = _send_data(404, "not found", "no se econtro el doctor")
             return Response(data)
+        
         doctor.save()
-                 
+        serializer_doctor = DoctorResponseSerializer(doctor)
+        
         data = _send_data(202, "created", "los datos del doctor han sido actualizados")
-        data["doctor"] = {
-            "id": doctor.id,
-            "name": doctor.name,
-            "lastname": doctor.lastname,
-            "type_document": doctor.type_document,
-            "document": doctor.document,
-            "phone": doctor.phone,
-            "speciality": doctor.id_speciality.speciality,
-            "status": doctor.id_status.status
-        } 
+        data["doctor"] = serializer_doctor.data 
         return Response(data)
     
     def delete(self, request, document):
@@ -407,12 +378,33 @@ class SearchDoctorView(APIView):
         if not admin:
             data = _send_data(404, "not found", "El Usuario no se encontro")
             return Response(data)
-
+        
         doctors = Doctor.objects.search_doctor(search)
         if not doctors:
             data = _send_data(404, "not found", "No se encontraron resultados")
             return Response(data)
-
+        serializer = DoctorResponseSerializer(doctors, many=True)
         data = _send_data(200, "OK", "listado de doctores")
-        data["doctors"] = doctors.values()
+        data["doctors"] = serializer.data
+        return Response(data)
+    
+    
+class DoctorBySpciality(APIView):
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = [IsEmployee]
+    
+    def get(self, request, pk):
+        employee = Employee.objects.get_user(request.user)
+        if not employee:
+            data = _send_data(404, "not found", "El Usuario no se encontro")
+            return Response(data)
+        
+        doctors = Doctor.objects.get_doctor_by_speciality(pk)
+        if len(doctors) == 0:
+            data = _send_data(404, "not found", "No se encontraron resultados")
+            return Response(data)
+        
+        serializer = DoctorResponseSerializer(doctors, many=True)
+        data = _send_data(200, "OK", "listado de doctores")
+        data["doctors"] = serializer.data
         return Response(data)

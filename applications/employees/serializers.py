@@ -3,19 +3,26 @@ from rest_framework import serializers
 # models
 from .models import Employee
 
+# serializers
+from applications.users.serializers import UserResponseSerializer
+from applications.users.serializers import UserSerializer
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    password = serializers.CharField()
+
+class EmployeeResponseSerializer(serializers.ModelSerializer):
+    user = UserResponseSerializer(write_only=False)
+    document = serializers.CharField(write_only=False)
     
     class Meta:
         model = Employee
-        exclude =  ["created_at", "updated_at", "id_user"]
-        
-    def validate_password(self, password):
-        if len(password) < 8 or len(password) > 12:
-            raise serializers.ValidationError("la contraseña debe contener de 8 a 12 caracteres")
-        return password
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "user"]
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(write_only=False)
+    
+    class Meta:
+        model = Employee
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "user"]
     
 
     

@@ -1,24 +1,28 @@
 from rest_framework import serializers
 
-class AdministratorSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    lastname = serializers.CharField()
-    phone = serializers.CharField()
+# models
+from .models import Status
+from .models import Speciality
+from .models import Doctor
+from applications.employees.models import Employee
+
+# serializers
+from applications.employees.serializers import EmployeeResponseSerializer
+
+
+class AdministratorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = ["id", "name", "last_name", "phone"]
+
+
+class StatusResponseSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(write_only=False)
+    status = serializers.CharField(read_only=False, required=False, allow_blank=True)
     
-    def validate_name(self, name):
-        if len(name) < 3 or len(name) > 20:
-            return serializers.ValidationError("El campo debe contener de 3 a 20 caracteres")
-        return name
-    
-    def validate_lastname(self, lastname):
-        if len(lastname) < 3 or len(lastname) > 20:
-            return serializers.ValidationError("El campo debe contener de 3 a 20 caracteres")
-        return lastname
-    
-    def validate_phone(self, phone):
-        if len(phone) < 10 or len(phone) >10:
-            return serializers.ValidationError("El campo debe contener 10 caracteres")
-        return phone
+    class Meta:
+        model = Status
+        fields = ["id", "status"]
 
 
 class StatusSerializer(serializers.Serializer):
@@ -30,56 +34,39 @@ class StatusSerializer(serializers.Serializer):
         return status
 
 
-class SpecialitySerializer(serializers.Serializer):
-    speciality = serializers.CharField()
+class SpecialityResponseSerializer(serializers.ModelSerializer):
+    employee = EmployeeResponseSerializer(write_only=False)
+    speciality = serializers.CharField(write_only=False)
     
-    def validate_speciality(self, speciality):
-        if len(speciality) < 3 or len(speciality) > 40:
-            raise serializers.ValidationError("la specialidad debe contener mas de 3 caracteres")
-        return speciality
-    
-    
-class DoctorSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    lastname = serializers.CharField()
-    type_document = serializers.CharField()
-    document = serializers.CharField()
-    phone = serializers.CharField()
-    speciality = serializers.CharField()
-    status = serializers.CharField()
+    class Meta:
+        model = Speciality
+        fields = ["id", "speciality", "employee"]
+
+
+class SpecialitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Speciality
+        fields = ["id", "speciality"]
     
     
-    def validate_name(self, data):
-        if len(data) < 3 or len(data) > 20:
-            raise serializers.ValidationError("El campo debe contener de 3 a 20 caracteres")
-        return data
+class DoctorResponseSerializer(serializers.ModelSerializer):
+    speciality = SpecialityResponseSerializer(write_only=False)
+    status = StatusResponseSerializer(write_only=False)
+    employee = EmployeeResponseSerializer(write_only=False)
     
-    def validate_lastname(self, data):
-        if len(data) < 3 or len(data) >20:
-            raise serializers.ValidationError("el campo debe contener de 3 a 20 caracteres")
-        return data
+    class Meta:
+        model = Doctor
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "speciality", "status", "employee"]
+  
     
-    def validate_type_document(self, data):
-        if len(data) < 3 or len(data) > 30:
-            raise serializers.ValidationError("el campo debe contener de 3 a 30 caracteres")
-        return data
-    
-    def validate_document(self, data):
-        if len(data) < 6 or len(data) > 20:
-            raise serializers.ValidationError("el campo debe contener de 6 a 20 caracteres")
-        return data 
-    
-    def validate_phone(self, data):
-        if len(data) < 10 or len(data) >10:
-            raise serializers.ValidationError("el campo debe contener 10 caracteres")
-        return data
-    
-    def validate_speciality(self, data):
-        if len(data) < 5 or len(data) > 30:
-            raise serializers.ValidationError("el campo debe contener de 5 a 30 caracteres")
-        return data
-    
-    def validate_status(self, data):
-        if len(data) < 5 or len(data) > 30:
-            raise serializers.ValidationError("el campo debe contener de 5 a 30 caracteres")
-        return data
+class DoctorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "speciality", "status"]
+        
+        
+class DoctorSerializer(serializers.ModelSerializer):
+    document = serializers.CharField(write_only=False)
+    class Meta:
+        model = Doctor
+        fields = ["id", "name", "last_name", "type_document", "document", "phone", "speciality", "status"]

@@ -31,7 +31,7 @@ class UserManager(BaseUserManager, Manager):
     def _created_user(self, email, password, rol, is_staff, is_superuser):
         user = self.model()
         user.email = email
-        user.id_role = rol
+        user.role = rol
         user.is_staff = is_staff
         user.is_superuser = is_superuser
         user.set_password(password)
