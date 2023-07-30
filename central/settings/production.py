@@ -1,7 +1,7 @@
 from .base import *
 import dj_database_url
 
-DEBUG = True not in os.environ
+DEBUG = "True" not in os.environ
 
 # https://docs.djangoproject.com/en/3.0/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
