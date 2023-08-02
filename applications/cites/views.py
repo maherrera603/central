@@ -94,46 +94,21 @@ class DetailCiteView(APIView):
         data["cite"] = serializer.data
         return Response(data)
     
-    #TODO: remove this method
-    def put(self, request, pk):
-        serializer = UpdateCiteSerializer(data=request.data)
-        if not serializer.is_valid():
-            data = _send_data(400, "bad request", "complete los campos requeridos")
-            data["errors"] = serializer.errors
+    def delete(self, request, pk):
+        pattient = Pattient.objects.get_user(request.user)
+        if not pattient:
+            data = _send_data(401, "Unauthorized", "No Ha Iniciado Sesion")
             return Response(data)
         
-        doctor = Doctor.objects.get_doctor_by_pk(serializer.data["id_doctor"])    
-        if not doctor:
-            data = _send_data(404, "bad request", "doctor no encontrado")
-            return Response(data)
-        
-        statu = Status.objects.get_status(serializer.data["status"])
-        if not statu:
-            data = _send_data(404, "not found", "no se encotro el estado")
-            return Response(data)
-        
-        cite = Cites.objects.update_cite(pk, serializer.data, doctor, statu)
+        cite = Cites.objects.get_cite_by_pk(pk)
         if not cite:
-            data = _send_data(404, "not found", "la cita no fue encontrada")
+            data = _send_data(404, "not found", "Cita no encontrada")
             return Response(data)
-        cite.save()
         
-        data = _send_data(202, "created", "la cita ha sido actualizada")
-        data["cite"] = {
-            "name": cite.name,
-            "lastname": cite.lastname,
-            "type_document": cite.type_document,
-            "document": cite.document,
-            "phone": cite.phone,
-            "eps": cite.eps,
-            "speciality": cite.id_speciality.speciality,
-            "doctor": cite.id_doctor.name,
-            "date_cite": cite.date_cite,
-            "hour": cite.hour_cite,
-            "status": cite.id_status.status,
-        }
+        cite.delete();
+        data = _send_data(204, "not content", "Cita eliminada correctamente")
         return Response(data)
-    
+   
     
 class SearchCiteView(APIView):
     authentication_classes = (TokenAuthentication, )
